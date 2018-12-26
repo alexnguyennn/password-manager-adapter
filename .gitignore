@@ -1,0 +1,6 @@
+src/Cli/obj/
+src/Cli/bin/
+
+src/Model/obj/
+
+src/Service/obj/

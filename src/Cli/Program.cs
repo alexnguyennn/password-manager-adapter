@@ -7,6 +7,7 @@ namespace PasswordManager.Cli
         static void Main(string[] args)
         {
             Console.WriteLine("Hello World!");
+            // Startup.cs => dependency injection somehow?
         }
     }
 }
