@@ -1,6 +1,12 @@
+.idea/
 src/Cli/obj/
 src/Cli/bin/
 
 src/Model/obj/
+src/Model/bin/
 
 src/Service/obj/
+src/Service/bin/
+
+test/Service.Test/obj/
+test/Service.Test/bin/
