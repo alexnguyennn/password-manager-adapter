@@ -9,7 +9,7 @@ namespace PasswordManager.Service.Contract
     public interface IPasswordAdapter
     {
         // Login method
-        Task<ExecutionResult> Login(string user);
+        Task<bool> Login(string user, string pathToAskPassFile = null);
         Task<(bool status, string account)> GetStatus();
         Task<IList<Record>> GetRecords();
         Task<ExecutionResult> GetField(string id, string fieldName);

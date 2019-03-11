@@ -20,17 +20,15 @@ namespace PasswordManager.Service.Providers {
             _cli = cli;
         }
         
-        public async Task<ExecutionResult> Login(string user)
+        public async Task<bool> Login(string user, string pathToAskPassFile = null)
         {
             var args = $"login {user} --trust";
             string callback = null;
-            var result = await _cli.SetArguments(args)
-//                .SetStandardOutputCallback(l => callback = l)
-//                .SetStandardErrorCallback(l => callback = l)
-                .EnableExitCodeValidation(false)
-                .ExecuteAsync();
-//            return callback;
-            return result;
+            var result = _cli.SetArguments(args);
+            if (!string.IsNullOrEmpty(pathToAskPassFile)) result.SetEnvironmentVariable("LPASS_ASKPASS", pathToAskPassFile);
+            
+            await result.ExecuteAsync();
+            return (await GetStatus()).status;
         }
 
         public async Task<(bool status, string account)> GetStatus()

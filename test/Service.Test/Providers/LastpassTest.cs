@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Threading.Tasks;
 using CliWrap;
+using CliWrap.Models;
 using Moq;
 using PasswordManager.Service.Providers;
 using Shouldly;
@@ -21,8 +22,8 @@ namespace Service.Test.Providers
             protected TestFixture()
             {
                 _cli = new Mock<ICli>();
-//                Fixture = new Lastpass(_cli.Object);
-                Fixture = new Lastpass(new Cli("lpass"));
+                Fixture = new Lastpass(_cli.Object);
+                //Fixture = new Lastpass(new Cli("lpass"));
             }
         }
 
@@ -40,21 +41,95 @@ namespace Service.Test.Providers
             async Task WhenUserNameIsCorrect_UserIsLoggedIn()
             {
                 //arrange
-                var x = "test";
+                var cliMock = new Mock<ICli>();
+                var user = "bob@dog.com";
+                var loginArgs = $"login {user} --trust";
+                _cli.Setup(x => x.SetArguments(loginArgs))
+                    .Returns(new Mock<ICli>().Object);
+
+                _cli.Setup(x => x.SetArguments("status"))
+                    .Returns(cliMock.Object);
+
+                var expectedExecutionResult = new ExecutionResult(0, "Logged in as bob@dog.com.", "", default(DateTimeOffset), default(DateTimeOffset));
+
+                cliMock.Setup(x => x.ExecuteAsync())
+                .Returns(Task.FromResult(expectedExecutionResult));
 
                 //act
-                var result = await Fixture.Login("");
+                var result = await Fixture.Login(user);
                 //assert
-                // TODO check status logged in
-                _outputHelper.WriteLine($"Output: {result}");
-                result.ExitCode.ShouldNotBe(1);
+                result.ShouldBeTrue();
             }
 
             [Fact]
-            void WhenUserNameIsIncorrect_UserIsNotLoggedIn()
+            async Task WhenUserNameIsIncorrect_UserIsNotLoggedIn()
             {
-                var x = "test";
-                x.ShouldBe("test");
+                //arrange
+                var cliMock = new Mock<ICli>();
+                var user = "bob@dog.com";
+                var loginArgs = $"login {user} --trust";
+                _cli.Setup(x => x.SetArguments(loginArgs))
+                    .Returns(new Mock<ICli>().Object);
+
+                _cli.Setup(x => x.SetArguments("status"))
+                    .Returns(cliMock.Object);
+
+                var expectedExecutionResult = new ExecutionResult(0, "Not logged in.", "", default(DateTimeOffset), default(DateTimeOffset));
+
+                cliMock.Setup(x => x.ExecuteAsync())
+                .Returns(Task.FromResult(expectedExecutionResult));
+
+                //act
+                var result = await Fixture.Login(user);
+                //assert
+                result.ShouldBeFalse();
+            }
+        }
+
+        public class GetStatus : TestFixture
+        {
+            [Fact]
+            async Task WhenUserIsLoggedIn_ReturnTrueAndAccount()
+            {
+                //arrange
+                var cliMock = new Mock<ICli>();
+                var user = "bob@dog.com";
+
+                _cli.Setup(x => x.SetArguments("status"))
+                    .Returns(cliMock.Object);
+
+                var expectedExecutionResult = new ExecutionResult(0, $"Logged in as {user}.", "", default(DateTimeOffset), default(DateTimeOffset));
+
+                cliMock.Setup(x => x.ExecuteAsync())
+                .Returns(Task.FromResult(expectedExecutionResult));
+
+                //act
+                var (result, accountId) = await Fixture.GetStatus();
+                //assert
+                result.ShouldBeTrue();
+                accountId.ShouldBe(user);
+            }
+
+            [Fact]
+            async Task WhenUserIsNotLoggedIn_ReturnFalseAndNoAccount()
+            {
+                //arrange
+                var cliMock = new Mock<ICli>();
+                var user = "bob@dog.com";
+
+                _cli.Setup(x => x.SetArguments("status"))
+                    .Returns(cliMock.Object);
+
+                var expectedExecutionResult = new ExecutionResult(0, "Not logged in.", "", default(DateTimeOffset), default(DateTimeOffset));
+
+                cliMock.Setup(x => x.ExecuteAsync())
+                .Returns(Task.FromResult(expectedExecutionResult));
+
+                //act
+                var (result, accountId) = await Fixture.GetStatus();
+                //assert
+                result.ShouldBeFalse();
+                accountId.ShouldBeNull();
             }
         }
         

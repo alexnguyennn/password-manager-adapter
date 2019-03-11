@@ -8,9 +8,8 @@ namespace Service.Providers
 {
     public class Bitwarden : IPasswordAdapter
     {
-        public Task<ExecutionResult> Login(string user)
+        public Task<bool> Login(string user, string pathToAskPassFile = null)
         {
-            // TODO figure out how to script this
             throw new System.NotImplementedException();
         }
 
