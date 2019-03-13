@@ -58,7 +58,7 @@ namespace PasswordManager.Service.Providers {
                 .ExecuteAsync();
             if (string.IsNullOrEmpty(result.StandardOutput)) return null;
             var ids = result.StandardOutput
-                .Split(Convert.ToChar(Environment.NewLine))
+                .Split(new [] {Environment.NewLine}, StringSplitOptions.None)
                 .Where(id => !(groups.Contains(id)));
             var jsonRecords = await _cli.SetArguments($"show --json {String.Join(" ", ids)}")
                 .ExecuteAsync();
