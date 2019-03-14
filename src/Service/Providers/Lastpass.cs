@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using CliWrap;
+using CliWrap.Exceptions;
 using CliWrap.Models;
 using Newtonsoft.Json;
 using PasswordManager.Model;
@@ -14,32 +15,57 @@ namespace PasswordManager.Service.Providers {
     {
         private string executable { get; set; } = "lpass";
         private readonly ICli _cli;
+        private bool _debug;
         
         public Lastpass(ICli cli)
         {
             _cli = cli;
+            _debug = true;
         }
         
         public async Task<bool> Login(string user, string pathToAskPassFile = null)
         {
-            var args = $"login {user} --trust";
-            string callback = null;
-            var result = _cli.SetArguments(args);
-            if (!string.IsNullOrEmpty(pathToAskPassFile)) result.SetEnvironmentVariable("LPASS_ASKPASS", pathToAskPassFile);
-            
-            await result.ExecuteAsync();
-            return (await GetStatus()).status;
+            string args = null;
+            try
+            {
+                args = $"login {user} --trust";
+                var result = _cli.SetArguments(args);
+                if (!string.IsNullOrEmpty(pathToAskPassFile)) result.SetEnvironmentVariable("LPASS_ASKPASS", 
+                    pathToAskPassFile);
+                
+                await result.ExecuteAsync();
+                return (await GetStatus()).status;
+            }
+            catch (ExitCodeValidationException e)
+            {
+                if (_debug) Console.WriteLine($"Adapter: {nameof(Lastpass)} / Method: {nameof(Login)} \n" +
+                                  $"raw cli: {executable} {args} \n" +
+                                  $"{e.ExecutionResult.StandardError}");
+                return false;
+            }
         }
 
         public async Task<(bool status, string account)> GetStatus()
         {
-            var result = await _cli.SetArguments("status")
-                .ExecuteAsync();
-            var output = result.StandardOutput;
+            try
+            {
+                var result = await _cli.SetArguments("status")
+                    .ExecuteAsync();
+                var output = result.StandardOutput;
 
-            if (output.Contains("Not logged in")) return (false, null);
-            var fragments = output.Split(' ');
-            return (true, fragments[fragments.Length - 1].TrimEnd('.'));
+                if (output.Contains("Not logged in")) return (false, null);
+                var fragments = output.Split(' ');
+                return (true, fragments[fragments.Length - 1].TrimEnd('.'));
+            }
+            catch (ExitCodeValidationException e)
+            {
+                // TODO convert this into logging output instead
+                if (_debug) Console.WriteLine($"Adapter: {nameof(Lastpass)} / Method: {nameof(GetStatus)}\n" +
+                                  $"raw cli: {executable} status\n" +
+                                  $"{e.ExecutionResult.StandardError}");
+                return (false, null);
+            }
+
         }
 
         public async Task<IList<Record>> GetRecords()
@@ -75,6 +101,12 @@ namespace PasswordManager.Service.Providers {
             // TODO lpass also has special direct search - implement one just for it
             // lpass show -site- => gets both if term gives up duplicates though; handle this
             // use -F
+        }
+
+        public async Task<IDictionary<string, Record>> GetRecordsMap()
+        {
+            var recordsList = await GetRecords();
+            return recordsList.ToDictionary(record => record.id);
         }
 
         public Task<ExecutionResult> GetField(string id, string fieldName, bool copyToClipboard = false)

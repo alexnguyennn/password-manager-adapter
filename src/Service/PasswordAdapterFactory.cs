@@ -29,6 +29,7 @@ namespace PasswordManager.Service
                         throw new NotImplementedException();
                         break;
                     case AdapterType.LastPass:
+                        // TODO select executable based on running OS
                         newAdapter = new Lastpass(new Cli("lpass"));
                         break;
                     default:

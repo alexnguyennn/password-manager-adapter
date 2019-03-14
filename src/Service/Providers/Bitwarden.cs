@@ -26,10 +26,13 @@ namespace Service.Providers
             // TODO bw has special direct search - implement one just for it
         }
 
-        public Task<ExecutionResult> GetField(string id, string fieldName)
+        public Task<IDictionary<string, Record>> GetRecordsMap()
         {
-            // bw get password <id>
-            // bw get user <id>
+            throw new System.NotImplementedException();
+        }
+
+        public Task<ExecutionResult> GetField(string id, string fieldName, bool copyToClipboard = true)
+        {
             throw new System.NotImplementedException();
         }
     }

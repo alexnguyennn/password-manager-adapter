@@ -119,7 +119,6 @@ namespace Service.Test.Providers
             {
                 //arrange
                 var cliMock = new Mock<ICli>();
-                var user = "bob@dog.com";
 
                 _cli.Setup(x => x.SetArguments("status"))
                     .Returns(cliMock.Object);
