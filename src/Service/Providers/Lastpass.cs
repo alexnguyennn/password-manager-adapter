@@ -77,9 +77,10 @@ namespace PasswordManager.Service.Providers {
             // use -F
         }
 
-        public Task<ExecutionResult> GetField(string id, string fieldName)
+        public Task<ExecutionResult> GetField(string id, string fieldName, bool copyToClipboard = false)
         {
-            return _cli.SetArguments($"show -c --{fieldName} {id}")
+            string copyArgument = copyToClipboard ? "-c" : "";
+            return _cli.SetArguments($"show {copyArgument} --{fieldName} {id}")
                 .ExecuteAsync();
         }
     }

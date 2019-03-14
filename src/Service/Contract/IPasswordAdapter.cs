@@ -12,6 +12,7 @@ namespace PasswordManager.Service.Contract
         Task<bool> Login(string user, string pathToAskPassFile = null);
         Task<(bool status, string account)> GetStatus();
         Task<IList<Record>> GetRecords();
-        Task<ExecutionResult> GetField(string id, string fieldName);
+        Task<IDictionary<string, Record>> GetRecordsMap();
+        Task<ExecutionResult> GetField(string id, string fieldName, bool copyToClipboard = true);
     }
 }

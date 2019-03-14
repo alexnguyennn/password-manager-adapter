@@ -1,4 +1,5 @@
 .idea/
+.vs/
 src/Cli/obj/
 src/Cli/bin/
 
