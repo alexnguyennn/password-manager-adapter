@@ -13,6 +13,7 @@ namespace PasswordManager.Cli
         static int Main(string[] args)
         {
             // TODO configuration handling
+            // TODO daemonise
             AppRunner<AdapterCli> appRunner = new AppRunner<AdapterCli>();
             return appRunner.Run(args);
         }

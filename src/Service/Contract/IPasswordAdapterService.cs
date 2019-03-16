@@ -9,7 +9,7 @@ namespace PasswordManager.Service.Contract
         Task<bool> Login(string user);
         Task<string> GetShowString(bool sync = false);
         Task Show(bool sync = false);
-        Task<string> Lookup(string id, string field, bool copyToClipboard = true);
+        void Lookup(string id, string field, bool copyToClipboard = true);
 
         Task<(bool status, string account)> Status();
         //TODO lookup on id

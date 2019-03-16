@@ -196,7 +196,21 @@ namespace Service.Test.Providers
             private string GetExpectedRecordJsonString()
             {
                 return
-                    "[{ \"id\": \"1\", \"name\": \"bobdog.com\", \"fullname\": \"bobdog.com\", \"username\": \"dog\", \"password\": \"bob\", \"last_modified_gmt\": \"1542032428\", \"last_touch\": \"0\", \"group\": \"\", \"url\": \"https://bobdog.com/user/actions\", \"note\": \"\" }, { \"id\": \"2\", \"name\": \"bobdog.com\", \"fullname\": \"bobdog.com\", \"username\": \"dog\", \"password\": \"bob\", \"last_modified_gmt\": \"1542032428\", \"last_touch\": \"0\", \"group\": \"\", \"url\": \"https://bobdog.com/user/actions\", \"note\": \"\" }, { \"id\": \"3\", \"name\": \"bobdog.com\", \"fullname\": \"bobdog.com\", \"username\": \"dog\", \"password\": \"bob\", \"last_modified_gmt\": \"1542032428\", \"last_touch\": \"0\", \"group\": \"\", \"url\": \"https://bobdog.com/user/actions\", \"note\": \"\" }, { \"id\": \"4\", \"name\": \"bobdog.com\", \"fullname\": \"bobdog.com\", \"username\": \"dog\", \"password\": \"bob\", \"last_modified_gmt\": \"1542032428\", \"last_touch\": \"0\", \"group\": \"\", \"url\": \"https://bobdog.com/user/actions\", \"note\": \"\" }, { \"id\": \"5\", \"name\": \"bobdog.com\", \"fullname\": \"bobdog.com\", \"username\": \"dog\", \"password\": \"bob\", \"last_modified_gmt\": \"1542032428\", \"last_touch\": \"0\", \"group\": \"\", \"url\": \"https://bobdog.com/user/actions\", \"note\": \"\" } ]";
+                    "[{ \"id\": \"1\", \"name\": \"bobdog.com\", \"fullname\": \"bobdog.com\", \"username\": \"dog\"," +
+                    " \"password\": \"bob\", \"last_modified_gmt\": \"1542032428\", \"last_touch\": \"0\", " +
+                    "\"group\": \"\", \"url\": \"https://bobdog.com/user/actions\", \"note\": \"\" }, " +
+                    "{ \"id\": \"2\", \"name\": \"bobdog.com\", \"fullname\": \"bobdog.com\", \"username\": \"dog\", " +
+                    "\"password\": \"bob\", \"last_modified_gmt\": \"1542032428\", \"last_touch\": \"0\", " +
+                    "\"group\": \"\", \"url\": \"https://bobdog.com/user/actions\", \"note\": \"\" }, " +
+                    "{ \"id\": \"3\", \"name\": \"bobdog.com\", \"fullname\": \"bobdog.com\", \"username\": \"dog\", " +
+                    "\"password\": \"bob\", \"last_modified_gmt\": \"1542032428\", \"last_touch\": \"0\", " +
+                    "\"group\": \"\", \"url\": \"https://bobdog.com/user/actions\", \"note\": \"\" }, " +
+                    "{ \"id\": \"4\", \"name\": \"bobdog.com\", \"fullname\": \"bobdog.com\", \"username\": \"dog\"," +
+                    " \"password\": \"bob\", \"last_modified_gmt\": \"1542032428\", \"last_touch\": \"0\", " +
+                    "\"group\": \"\", \"url\": \"https://bobdog.com/user/actions\", \"note\": \"\" }, " +
+                    "{ \"id\": \"5\", \"name\": \"bobdog.com\", \"fullname\": \"bobdog.com\", \"username\": \"dog\", " +
+                    "\"password\": \"bob\", \"last_modified_gmt\": \"1542032428\", \"last_touch\": \"0\", " +
+                    "\"group\": \"\", \"url\": \"https://bobdog.com/user/actions\", \"note\": \"\" } ]";
             }
 
             private IList<Record> GetExpectedRecords()
@@ -220,7 +234,6 @@ namespace Service.Test.Providers
             [Fact]
             async Task WhenUserIsLoggedIn_CopyFieldToClipboard()
             {
-                var result = await Fixture.GetField("<insert-id>", "password");
                 // TODO check clipboard contents?
             }
         }

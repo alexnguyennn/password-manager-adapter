@@ -13,6 +13,6 @@ namespace PasswordManager.Service.Contract
         Task<(bool status, string account)> GetStatus();
         Task<IList<Record>> GetRecords();
         Task<IDictionary<string, Record>> GetRecordsMap();
-        Task<ExecutionResult> GetField(string id, string fieldName, bool copyToClipboard = true);
+        void GetFieldById(string id, string fieldName, bool copyToClipboard = false);
     }
 }

@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
+using CliWrap.Exceptions;
 using CommandDotNet.Attributes;
 using PasswordManager.Model.Enums;
 using PasswordManager.Service;
@@ -11,6 +12,7 @@ namespace PasswordManager.Cli
     public class AdapterCli
     {
         private readonly IPasswordAdapterService _service;
+        private readonly bool _debug;
         public AdapterCli()
         {
             _service = new PasswordAdapterService(new PasswordAdapterFactory(), 
@@ -19,8 +21,8 @@ namespace PasswordManager.Cli
                     {AdapterType.Bitwarden, "BW"},
                     {AdapterType.LastPass, "LP"},
                 });
-            
 
+            _debug = true;
         }
         
         [ApplicationMetadata(Description = "Initiates Login to each provider with specified user credential")]
@@ -58,13 +60,40 @@ namespace PasswordManager.Cli
         [ApplicationMetadata(Description = "Gets record by id")]
         public async Task<int> Retrieve(string id, string field, bool c)
         {
-            var output = await _service.Lookup(id, field, c);
-            if (!String.IsNullOrEmpty(output))
+            
+            if (!(await _service.Status()).status)
             {
-                Console.WriteLine(output);
-            }
-
+                Console.WriteLine("Not Logged in.");
+                return 1;
+            } 
+            
+            _service.Lookup(id, field, c);
             return 0;
+        }
+
+        [ApplicationMetadata(Description = "Gets record by id")]
+        public async Task<int> DmenuLookupPassword(bool c)
+        {
+            string records = null;
+            try
+            {
+                
+                records = await _service.GetShowString();
+                var result = await CliWrap.Cli.Wrap("dmenu")
+                    .SetStandardInput(records)
+                    .ExecuteAsync();
+                var choice = result.StandardOutput.Trim();
+
+                return await Retrieve(choice, "password", true);
+
+            }
+            catch (ExitCodeValidationException e)
+            {
+                if (_debug) Console.WriteLine($"Class: {nameof(AdapterCli)} / Method: {nameof(DmenuLookupPassword)}\n" +
+                                  $"raw cli: {records} | dmenu \n" +
+                                  $"{e.ExecutionResult.StandardError}");
+                return 1;
+            }
         }
     }
 }

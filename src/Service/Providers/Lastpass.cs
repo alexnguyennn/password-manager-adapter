@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Resources;
 using System.Threading.Tasks;
 using CliWrap;
 using CliWrap.Exceptions;
@@ -15,12 +16,12 @@ namespace PasswordManager.Service.Providers {
     {
         private string executable { get; set; } = "lpass";
         private readonly ICli _cli;
-        private bool _debug;
+        private readonly bool _debug = true;
+        private const string abbrev = "LP";
         
         public Lastpass(ICli cli)
         {
             _cli = cli;
-            _debug = true;
         }
         
         public async Task<bool> Login(string user, string pathToAskPassFile = null)
@@ -92,11 +93,11 @@ namespace PasswordManager.Service.Providers {
             
             return JsonConvert.DeserializeObject<IList<Record>>(jsonRecords.StandardOutput)
                 .Select(
-                record =>
-                {
-                    record.source = AdapterType.LastPass;
-                    return record;
-                }).ToList(); 
+                    record =>
+                    {
+                        record.source = AdapterType.LastPass;
+                        return record;
+                    }).ToList(); 
             
             // TODO lpass also has special direct search - implement one just for it
             // lpass show -site- => gets both if term gives up duplicates though; handle this
@@ -106,14 +107,34 @@ namespace PasswordManager.Service.Providers {
         public async Task<IDictionary<string, Record>> GetRecordsMap()
         {
             var recordsList = await GetRecords();
-            return recordsList.ToDictionary(record => record.id);
+            return recordsList.ToDictionary(record =>
+            {
+                // TODO do something with url + formatting option
+//                string formattedUrl;
+//                try
+//                {
+//                    formattedUrl = new Uri(record.url).Host;
+//                }
+//                catch (UriFormatException e)
+//                {
+//                    if (_debug) Console.WriteLine($"Bad uri format exception: {e} \nrecord: {record.url}");
+//                    formattedUrl = record.url;
+//                }
+                
+//                return $"{record.name}|| {record.username} | {formattedUrl} | {record.id} || {abbrev}";
+                return $"{record.name}|| {record.username} {record.id} || {abbrev}";
+            });
         }
 
-        public Task<ExecutionResult> GetField(string id, string fieldName, bool copyToClipboard = false)
+        public void GetFieldById(string id, string fieldName, bool copyToClipboard = false)
         {
             string copyArgument = copyToClipboard ? "-c" : "";
-            return _cli.SetArguments($"show {copyArgument} --{fieldName} {id}")
-                .ExecuteAsync();
+            var args = $"show {copyArgument} --{fieldName} {id}";
+            if (_debug) Console.WriteLine($"About to call lpass with args: {args}");
+            _cli.SetArguments(args)
+                .ExecuteAndForget();
         }
+        
+
     }
 }

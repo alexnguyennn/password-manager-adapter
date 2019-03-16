@@ -31,7 +31,7 @@ namespace Service.Providers
             throw new System.NotImplementedException();
         }
 
-        public Task<ExecutionResult> GetField(string id, string fieldName, bool copyToClipboard = true)
+        public void GetFieldById(string id, string fieldName, bool copyToClipboard = false)
         {
             throw new System.NotImplementedException();
         }
