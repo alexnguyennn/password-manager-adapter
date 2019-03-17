@@ -1,0 +1,8 @@
+#!/usr/bin/zsh
+# selection=`dotnet /opt/pw-cli/Cli.dll List | dmenu | sed 's/.*|//'`
+
+# if [ "$selection" != "" ]; then
+#     lpass show -c --password $selection &
+# fi
+
+dotnet /opt/pw-cli/Cli.dll DmenuLookupPassword
