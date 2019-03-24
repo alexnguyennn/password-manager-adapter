@@ -37,7 +37,7 @@ namespace PasswordManager.Cli
             var (lpLoggedIn, account) = await _service.Status();
             if (!lpLoggedIn || account != user)
             {
-                var loginResult = await _service.Login(user);
+                var loginResult = _service.Login(user);
                 return loginResult ? 0 : 1;
             }
 

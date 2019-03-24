@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
@@ -14,69 +15,79 @@ namespace PasswordManager.Service
         private readonly IPasswordAdapterFactory _passwordAdapterFactory;
         private IDictionary<string, Record> _records;
         private readonly IDictionary<AdapterType, string> _adapterTypeMap;
+        private readonly IList<IPasswordAdapter> _adapters;
         private readonly bool _debug;
-        
+
         public PasswordAdapterService(IPasswordAdapterFactory passwordAdapterFactory,
             IDictionary<AdapterType, string> adapterTypeMap)
         {
             _passwordAdapterFactory = passwordAdapterFactory;
+            _adapters = new List<IPasswordAdapter>
+            {
+                //TODO toggle bw when ready
+                _passwordAdapterFactory.GetPasswordAdapter(AdapterType.LastPass),
+//                _passwordAdapterFactory.GetPasswordAdapter(AdapterType.Bitwarden),
+            };
             _records = null;
             _adapterTypeMap = adapterTypeMap;
             _debug = false;
         }
-        
-        public Task<bool> Login(string user)
+
+        public bool Login(string user)
         {
-            var adapter = _passwordAdapterFactory.GetPasswordAdapter(AdapterType.LastPass);
-            return adapter.Login(user);
+            var loginResults = _adapters.Select(async adapter => await adapter.Login(user));
+            return !loginResults.Contains(Task.FromResult(false));
         }
 
         public async Task<string> GetShowString(bool sync = false)
         {
             if (_records is null || sync)
             {
-                var adapter = _passwordAdapterFactory.GetPasswordAdapter(AdapterType.LastPass);
-                _records = await adapter.GetRecordsMap();
+                _records = _adapters.Select(async adapter => await adapter.GetRecordsMap())
+                    .SelectMany(dict => dict.Result)
+                    .ToDictionary(pair => pair.Key, pair => pair.Value);
             }
 
             return String.Join(Environment.NewLine, _records.Keys);
-            
+
 //            //TODO limit url length
 //            // TODO Get map of Display format => id only
-
         }
 
         public async Task Show(bool sync = false)
         {
-            
             var output = await GetShowString();
             Console.WriteLine(output);
         }
 
         public void Lookup(string formattedOutput, string field, bool copyToClipboard = true)
         {
-            var adapter = _passwordAdapterFactory.GetPasswordAdapter(AdapterType.LastPass);
             if (_records is null || !_records.ContainsKey(formattedOutput))
             {
                 if (_debug)
-                _records.Keys.Select(record =>
-                {
-                    Console.WriteLine(record);
-                    return record;
-                }).ToList();
-                
+                    _records.Keys.Select(record =>
+                    {
+                        Console.WriteLine(record);
+                        return record;
+                    }).ToList();
+
                 Console.WriteLine($"Requested record not found: {formattedOutput}");
             }
             
             var id = _records[formattedOutput].id;
-            adapter.GetFieldById(id, field, copyToClipboard);
+            _passwordAdapterFactory.GetPasswordAdapter(_records[formattedOutput].source)
+                .GetFieldById(id, field, copyToClipboard);
         }
 
-        public Task<(bool status, string account)> Status()
+        public async Task<(bool status, string account)> Status()
         {
-            var adapter = _passwordAdapterFactory.GetPasswordAdapter(AdapterType.LastPass);
-            return adapter.GetStatus();
-        }
+            var statusResults = _adapters.Select(async adapter => await adapter.GetStatus()).ToList();
+            if (statusResults.Where(result => !result.Result.status).ToList().Count != 0) return (false, null);
 
+            return (true, String.Join(Environment.NewLine, statusResults.Select(result => result.Result.account)));
+
+//            var adapter = _passwordAdapterFactory.GetPasswordAdapter(AdapterType.LastPass);
+//            return adapter.GetStatus();
+        }
     }
 }
