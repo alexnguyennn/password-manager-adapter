@@ -7,11 +7,11 @@ namespace PasswordManager.Service.Contract
         // Keeps all cached entries 
         // Copies to clipboard on lookup
         bool Login(string user);
-        Task<string> GetShowString(bool sync = false);
-        Task Show(bool sync = false);
+        string GetShowString(bool sync = false);
+        void Show(bool sync = false);
         void Lookup(string id, string field, bool copyToClipboard = true);
 
-        Task<(bool status, string account)> Status();
+        (bool status, string account) Status();
         //TODO lookup on id
         // Display 
     }

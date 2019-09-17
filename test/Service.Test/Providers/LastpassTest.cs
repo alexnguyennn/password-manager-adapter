@@ -232,9 +232,10 @@ namespace Service.Test.Providers
         public class GetField : TestFixture
         {
             [Fact]
-            async Task WhenUserIsLoggedIn_CopyFieldToClipboard()
+            Task WhenUserIsLoggedIn_CopyFieldToClipboard()
             {
                 // TODO check clipboard contents?
+                return Task.CompletedTask;
             }
         }
         

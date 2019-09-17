@@ -26,7 +26,7 @@ namespace PasswordManager.Cli
         }
         
         [ApplicationMetadata(Description = "Initiates Login to each provider with specified user credential")]
-        public async Task<int> Login(string user)
+        public int Login(string user)
         {
             if (string.IsNullOrEmpty(user))
             {
@@ -34,7 +34,7 @@ namespace PasswordManager.Cli
                 return 1;
             }
             
-            var (lpLoggedIn, account) = await _service.Status();
+            var (lpLoggedIn, account) = _service.Status();
             if (!lpLoggedIn || account != user)
             {
                 var loginResult = _service.Login(user);
@@ -46,22 +46,22 @@ namespace PasswordManager.Cli
 
         
         [ApplicationMetadata(Description = "Lists available records if logged in. Otherwise return exit code 1")]
-        public async Task<int> List()
+        public int List()
         {
-            if (!(await _service.Status()).status)
+            if (!(_service.Status()).status)
             {
                 Console.WriteLine("Not Logged in.");
                 return 1;
             }
-            await _service.Show();
+            _service.Show();
             return 0;
         }
 
         [ApplicationMetadata(Description = "Gets record by id")]
-        public async Task<int> Retrieve(string id, string field, bool c)
+        public int Retrieve(string id, string field, bool c)
         {
             
-            if (!(await _service.Status()).status)
+            if (!(_service.Status()).status)
             {
                 Console.WriteLine("Not Logged in.");
                 return 1;
@@ -78,13 +78,13 @@ namespace PasswordManager.Cli
             try
             {
                 
-                records = await _service.GetShowString();
+                records = _service.GetShowString();
                 var result = await CliWrap.Cli.Wrap("dmenu")
                     .SetStandardInput(records)
                     .ExecuteAsync();
                 var choice = result.StandardOutput.Trim();
 
-                return await Retrieve(choice, "password", true);
+                return Retrieve(choice, "password", true);
 
             }
             catch (ExitCodeValidationException e)

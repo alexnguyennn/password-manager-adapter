@@ -39,7 +39,7 @@ namespace PasswordManager.Service
             return !loginResults.Contains(Task.FromResult(false));
         }
 
-        public async Task<string> GetShowString(bool sync = false)
+        public string GetShowString(bool sync = false)
         {
             if (_records is null || sync)
             {
@@ -53,10 +53,9 @@ namespace PasswordManager.Service
 //            //TODO limit url length
 //            // TODO Get map of Display format => id only
         }
-
-        public async Task Show(bool sync = false)
+        public void Show(bool sync = false)
         {
-            var output = await GetShowString();
+            var output = GetShowString();
             Console.WriteLine(output);
         }
 
@@ -79,7 +78,7 @@ namespace PasswordManager.Service
                 .GetFieldById(id, field, copyToClipboard);
         }
 
-        public async Task<(bool status, string account)> Status()
+        public (bool status, string account) Status()
         {
             var statusResults = _adapters.Select(async adapter => await adapter.GetStatus()).ToList();
             if (statusResults.Where(result => !result.Result.status).ToList().Count != 0) return (false, null);

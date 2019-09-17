@@ -27,7 +27,6 @@ namespace PasswordManager.Service
             {
                     case AdapterType.Bitwarden:
                         throw new NotImplementedException();
-                        break;
                     case AdapterType.LastPass:
                         // TODO select executable based on running OS
                         newAdapter = new Lastpass(new Cli("lpass"));
