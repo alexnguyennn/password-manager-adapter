@@ -1,4 +1,6 @@
+using System.Security.Claims;
 using System;
+using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
 using System.Resources;
@@ -16,12 +18,17 @@ namespace PasswordManager.Service.Providers {
     {
         private string executable { get; set; } = "lpass";
         private readonly ICli _cli;
-        private readonly bool _debug = true;
+        private readonly bool _debug = false;
         private const string abbrev = "LP";
+        private const int batchSize = 30;
+
+        private bool _isWin;
+
         
-        public Lastpass(ICli cli)
+        public Lastpass(ICli cli, bool isWin)
         {
             _cli = cli;
+            _isWin = isWin;
         }
         
         public async Task<bool> Login(string user, string pathToAskPassFile = null)
@@ -30,7 +37,7 @@ namespace PasswordManager.Service.Providers {
             try
             {
                 args = $"login {user} --trust";
-                var result = _cli.SetArguments(args);
+                var result = _cli.SetArguments(WrapArgs(_isWin, args));
                 if (!string.IsNullOrEmpty(pathToAskPassFile)) result.SetEnvironmentVariable("LPASS_ASKPASS", 
                     pathToAskPassFile);
                 
@@ -50,7 +57,7 @@ namespace PasswordManager.Service.Providers {
         {
             try
             {
-                var result = await _cli.SetArguments("status")
+                var result = await _cli.SetArguments(WrapArgs(_isWin, "status"))
                     .ExecuteAsync();
                 var output = result.StandardOutput;
 
@@ -73,35 +80,56 @@ namespace PasswordManager.Service.Providers {
         {
             var status = (await GetStatus()).status;
             if (!status) return null;
-            var groups = new []
+            var groups = new[]
             {
                 "(none)", "Banking", "Business", "Education",
                 "Email", "Entertainment", "Finance", "Games",
                 "General", "Home", "Mobile", "News/Reference",
                 "Productivity Tools", "Secure Notes"
             };
-            
-            var result = await _cli.SetArguments($"ls --format=\"%ai\"")
-                .ExecuteAsync();
+
+            var result = await _cli.SetArguments(
+                WrapArgs(_isWin, $"ls --format=\"%ai\"")
+                ).ExecuteAsync();
+
             if (string.IsNullOrEmpty(result.StandardOutput)) return null;
+
             var ids = result.StandardOutput
-                .Split(new [] {Environment.NewLine}, StringSplitOptions.None)
-                .Where(id => !(groups.Contains(id)));
-            var jsonRecords = await _cli.SetArguments($"show --json {String.Join(" ", ids)}")
-                .ExecuteAsync();
+                .Split(new[] { Environment.NewLine }, StringSplitOptions.None)
+                .Where(id => !(groups.Contains(id)))
+                .ToList();
+
+            var batchNum = ids.Count() / batchSize;
+
+            return Enumerable.Range(0, batchNum)
+                .Select(b => ParseRecordsFromIds(ids
+                    .Skip(b * batchSize).Take(batchSize)))
+                .Select(t => t.Result)
+                .SelectMany(rb => rb, (recordBatch, record) => record)
+                .ToList();
+
+            // TODO lpass also has special direct search - implement one just for it
+            // lpass show -site- => gets both if term gives up duplicates though; handle this
+            // use -F
+        }
+
+        private async Task<IList<Record>> ParseRecordsFromIds(IEnumerable<string> ids)
+        {
+            var jsonRecords = await _cli.SetArguments(
+                    WrapArgs(_isWin, $"show --json {String.Join(" ", ids)}")
+                ).ExecuteAsync();
+
             if (string.IsNullOrEmpty(jsonRecords.StandardOutput)) return null;
-            
+
+            Console.WriteLine(jsonRecords.StandardOutput);
+
             return JsonConvert.DeserializeObject<IList<Record>>(jsonRecords.StandardOutput)
                 .Select(
                     record =>
                     {
                         record.source = AdapterType.LastPass;
                         return record;
-                    }).ToList(); 
-            
-            // TODO lpass also has special direct search - implement one just for it
-            // lpass show -site- => gets both if term gives up duplicates though; handle this
-            // use -F
+                    }).ToList();
         }
 
         public async Task<IDictionary<string, Record>> GetRecordsMap()
@@ -128,11 +156,23 @@ namespace PasswordManager.Service.Providers {
 
         public void GetFieldById(string id, string fieldName, bool copyToClipboard = false)
         {
-            string copyArgument = copyToClipboard ? "-c" : "";
-            var args = $"show {copyArgument} --{fieldName} {id}";
+            string copyArgument = copyToClipboard && !_isWin ? "-c" : "";
+            var pipeToClip = copyToClipboard && _isWin ? $"| clip.exe" : "";
+            var args = $"show {copyArgument} --{fieldName} {id} | tr -d '\n' {pipeToClip}";
+
             if (_debug) Console.WriteLine($"About to call lpass with args: {args}");
-            _cli.SetArguments(args)
-                .ExecuteAndForget();
+            var result = _cli.SetArguments(WrapArgs(_isWin, args))
+                .EnableExitCodeValidation()
+                .EnableStandardErrorValidation()
+                .Execute();
+
+            if (copyToClipboard) return;
+
+            Console.WriteLine(result.StandardOutput);
+        }
+
+        private string WrapArgs(bool isWin, string args) {
+            return isWin ? $"{executable} {args}" : args;
         }
         
 

@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Runtime.InteropServices;
 using CliWrap;
 using PasswordManager.Model.Enums;
 using PasswordManager.Service.Contract;
@@ -29,7 +30,11 @@ namespace PasswordManager.Service
                         throw new NotImplementedException();
                     case AdapterType.LastPass:
                         // TODO select executable based on running OS
-                        newAdapter = new Lastpass(new Cli("lpass"));
+                        var command = RuntimeInformation.IsOSPlatform(OSPlatform.Windows) 
+                        ? "wsl"
+                        : "lpass";
+
+                        newAdapter = new Lastpass(new Cli(command), true);
                         break;
                     default:
                         return null;

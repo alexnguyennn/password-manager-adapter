@@ -3,6 +3,7 @@ using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
+using Newtonsoft.Json;
 using PasswordManager.Model;
 using PasswordManager.Model.Enums;
 using PasswordManager.Service.Contract;
@@ -43,9 +44,7 @@ namespace PasswordManager.Service
         {
             if (_records is null || sync)
             {
-                _records = _adapters.Select(async adapter => await adapter.GetRecordsMap())
-                    .SelectMany(dict => dict.Result)
-                    .ToDictionary(pair => pair.Key, pair => pair.Value);
+                SyncRecords();
             }
 
             return String.Join(Environment.NewLine, _records.Keys);
@@ -53,29 +52,43 @@ namespace PasswordManager.Service
 //            //TODO limit url length
 //            // TODO Get map of Display format => id only
         }
+
+        private void SyncRecords()
+        {
+            _records = _adapters.Select(async adapter => await adapter.GetRecordsMap())
+                .SelectMany(dict => dict.Result)
+                .ToDictionary(pair => pair.Key, pair => pair.Value);
+        }
+
+
         public void Show(bool sync = false)
         {
             var output = GetShowString();
             Console.WriteLine(output);
         }
 
-        public void Lookup(string formattedOutput, string field, bool copyToClipboard = true)
+        public void ShowJson(bool sync = false) 
         {
-            if (_records is null || !_records.ContainsKey(formattedOutput))
+            if (_records is null || sync)
             {
-                if (_debug)
-                    _records.Keys.Select(record =>
-                    {
-                        Console.WriteLine(record);
-                        return record;
-                    }).ToList();
-
-                Console.WriteLine($"Requested record not found: {formattedOutput}");
+                SyncRecords();
             }
-            
-            var id = _records[formattedOutput].id;
-            _passwordAdapterFactory.GetPasswordAdapter(_records[formattedOutput].source)
-                .GetFieldById(id, field, copyToClipboard);
+            Console.WriteLine(String.Join(
+                Environment.NewLine, 
+                JsonConvert.SerializeObject(_records.Values)
+                ));
+        }
+
+
+        public void Lookup(string id, string field, AdapterType source, bool copyToClipboard = true)
+        {
+            try {
+                if (_debug) Console.WriteLine($"About to get field with {nameof(id)}: {id}, {nameof(field)}: {field}, {nameof(source)}: {source}, {nameof(copyToClipboard)}: {copyToClipboard}");
+                _passwordAdapterFactory.GetPasswordAdapter(source)
+                    .GetFieldById(id, field, copyToClipboard);
+            } catch (Exception e) {
+                Console.WriteLine($"Something went wrong on Lookup: {JsonConvert.SerializeObject(e)}");
+            }
         }
 
         public (bool status, string account) Status()

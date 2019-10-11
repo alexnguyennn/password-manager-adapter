@@ -18,14 +18,15 @@ namespace PasswordManager.Cli
             _service = new PasswordAdapterService(new PasswordAdapterFactory(), 
                 new Dictionary<AdapterType, string>
                 {
-                    {AdapterType.Bitwarden, "BW"},
+                    // {AdapterType.Bitwarden, "BW"},
                     {AdapterType.LastPass, "LP"},
                 });
 
             _debug = true;
         }
         
-        [ApplicationMetadata(Description = "Initiates Login to each provider with specified user credential")]
+        [ApplicationMetadata(Description = "Initiates Login to each provider with specified user credential",
+            Name = "login")]
         public int Login(string user)
         {
             if (string.IsNullOrEmpty(user))
@@ -45,7 +46,8 @@ namespace PasswordManager.Cli
         }
 
         
-        [ApplicationMetadata(Description = "Lists available records if logged in. Otherwise return exit code 1")]
+        [ApplicationMetadata(Description = "Lists available records if logged in. Otherwise return exit code 1",
+            Name = "list")]
         public int List()
         {
             if (!(_service.Status()).status)
@@ -57,17 +59,31 @@ namespace PasswordManager.Cli
             return 0;
         }
 
-        [ApplicationMetadata(Description = "Gets record by id")]
-        public int Retrieve(string id, string field, bool c)
+        [ApplicationMetadata(Description = "Lists available records in serialized json format. Otherwise return exit code 1", Name = "json")]
+        public int Json()
         {
-            
+            if (!(_service.Status()).status)
+            {
+                Console.WriteLine("Not Logged in.");
+                return 1;
+            }
+            _service.ShowJson();
+            return 0;
+        }
+
+
+        [ApplicationMetadata(Description = "Gets record by id", Name = "get")]
+        public int Retrieve(string id, string field, AdapterType source, 
+            [Option(LongName = "copyToClipboard", ShortName = "c", Description = "Toggle to copy result to clipboard")] bool copyToClipboard = false)
+        {
+            // TODO check all args present
             if (!(_service.Status()).status)
             {
                 Console.WriteLine("Not Logged in.");
                 return 1;
             } 
             
-            _service.Lookup(id, field, c);
+            _service.Lookup(id, field, source, copyToClipboard);
             return 0;
         }
 
@@ -84,7 +100,8 @@ namespace PasswordManager.Cli
                     .ExecuteAsync();
                 var choice = result.StandardOutput.Trim();
 
-                return Retrieve(choice, "password", true);
+                //  TODO: fix
+                return Retrieve(choice, "password", AdapterType.LastPass, true);
 
             }
             catch (ExitCodeValidationException e)

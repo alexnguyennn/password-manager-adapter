@@ -2,7 +2,7 @@
 {
     public enum AdapterType
     {
-        Bitwarden = 0,
-        LastPass = 1,
+        Bitwarden = 1,
+        LastPass = 2,
     }
 }

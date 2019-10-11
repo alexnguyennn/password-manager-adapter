@@ -9,10 +9,10 @@ namespace Service.Providers
 {
     public class Bitwarden : IPasswordAdapter
     {
-        private string executable { get; set; } = "bw";
-        private readonly ICli _cli;
-        private readonly bool _debug = true;
-        private const string abbrev = "BW";
+        //private string executable { get; set; } = "bw";
+        //private readonly ICli _cli;
+        //private readonly bool _debug = true;
+        //private const string abbrev = "BW";
          
         public Task<bool> Login(string user, string pathToAskPassFile = null)
         {

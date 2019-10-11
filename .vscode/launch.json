@@ -11,7 +11,20 @@
             "preLaunchTask": "build",
             // If you have changed target frameworks, make sure to update the program path.
             "program": "${workspaceFolder}/src/Cli/bin/Debug/netcoreapp2.2/Cli.dll",
-            "args": [],
+            "args": ["List"],
+            "cwd": "${workspaceFolder}/src/Cli",
+            // For more information about the 'console' field, see https://aka.ms/VSCode-CS-LaunchJson-Console
+            "console": "internalConsole",
+            "stopAtEntry": false
+        },
+        {
+            "name": ".NET Core Launch (console) retrieve",
+            "type": "coreclr",
+            "request": "launch",
+            "preLaunchTask": "build",
+            // If you have changed target frameworks, make sure to update the program path.
+            "program": "${workspaceFolder}/src/Cli/bin/Debug/netcoreapp2.2/Cli.dll",
+            "args": ["get", "-c", "7481529075189168884", "password", "LastPass"],
             "cwd": "${workspaceFolder}/src/Cli",
             // For more information about the 'console' field, see https://aka.ms/VSCode-CS-LaunchJson-Console
             "console": "internalConsole",

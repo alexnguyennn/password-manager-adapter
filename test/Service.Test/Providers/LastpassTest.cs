@@ -16,7 +16,7 @@ using Record = PasswordManager.Model.Record;
 
 namespace Service.Test.Providers
 {
-    public class LastpassTest
+    public static class LastpassTest
     {
         public class TestFixture
         {
@@ -26,7 +26,8 @@ namespace Service.Test.Providers
             protected TestFixture()
             {
                 _cli = new Mock<ICli>();
-                Fixture = new Lastpass(_cli.Object);
+                // TODO setup tests for both win and not win
+                Fixture = new Lastpass(_cli.Object, false);
                 //Fixture = new Lastpass(new Cli("lpass"));
             }
         }

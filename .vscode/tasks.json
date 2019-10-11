@@ -7,9 +7,19 @@
             "type": "process",
             "args": [
                 "build",
-                "${workspaceFolder}/src/Cli/Cli.csproj",
+                "${workspaceFolder}",
                 "/property:GenerateFullPaths=true",
                 "/consoleloggerparameters:NoSummary"
+            ],
+            "problemMatcher": "$msCompile"
+        },
+        {
+            "label": "clean",
+            "command": "dotnet",
+            "type": "process",
+            "args": [
+                "clean",
+                "${workspaceFolder}",
             ],
             "problemMatcher": "$msCompile"
         },
@@ -37,6 +47,11 @@
                 "/consoleloggerparameters:NoSummary"
             ],
             "problemMatcher": "$msCompile"
-        }
-    ]
+        },
+        {
+            "label": "rebuild",
+            "dependsOn": ["clean", "build"],
+            "problemMatcher": "$msCompile"
+        },
+        ]
 }

@@ -8,7 +8,7 @@ using PasswordManager.Service;
 
 namespace PasswordManager.Cli
 {
-    class Program
+    static class Program
     {
         static int Main(string[] args)
         {
